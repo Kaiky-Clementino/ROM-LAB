@@ -1,34 +1,49 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ArqComp Cruzadinha</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ROM Lab — Arquitetura Computacional</title>
+<link rel="stylesheet" href="style.css">
 </head>
-<body class="page-home">
-  <main class="home-wrap">
-    <section class="hero card">
-      <p class="kicker">Arquitetura Computacional - Sprint 3</p>
-      <h1>Cruzadinha Interativa</h1>
-      <p>
-        Treine os conceitos da disciplina resolvendo um tabuleiro com palavras do enunciado.
-        Leia as dicas, preencha as casas e confira o seu desempenho em tempo real.
-      </p>
-      <a class="btn btn-primary" href="cruzadinha.html">Iniciar jogo</a>
-    </section>
-
-    <section class="card">
-      <h2>Como funciona</h2>
-      <ul>
-        <li>Use as dicas horizontais e verticais para preencher as palavras.</li>
-        <li>Clique em <strong>Conferir</strong> para validar todas as respostas.</li>
-        <li>Veja o contador de acertos e use <strong>Reiniciar</strong> quando quiser.</li>
-      </ul>
-    </section>
-  </main>
+<body>
+<header>
+  <h1>ROM Lab <span>cruzadinha e minigames de Arquitetura Computacional</span></h1>
+  <nav>
+    <button data-t="cz" class="on">🧩 Cruzadinha</button>
+    <button data-t="fc">💾 Gravador de ROM</button>
+    <button data-t="an">🔀 Cache Embaralhado</button>
+  </nav>
+</header>
+<main>
+  <section id="cz">
+    <div class="row">
+      <div class="pn">
+        <div class="stat"><span>ROM usada: <b id="hr"></b></span><span id="sc">0 de 16 palavras</span></div>
+        <div id="gridw"><div id="grid" role="grid"></div></div>
+        <div class="msg" id="cm">Clique em uma casa ou pista e digite. Cada conferência errada grava 20 KB na ROM, e a ROM não apaga.</div>
+        <button class="b" id="chk">Conferir</button> <button class="b" id="rst">Reiniciar</button>
+      </div>
+      <div class="side">
+        <div class="pn chipbox">
+          <svg class="fig" id="fig" viewBox="0 0 160 120" aria-label="Capacidade da ROM">
+            <path class="pins" d="M14 24H30M14 42H30M14 60H30M14 78H30M14 96H30M130 24H146M130 42H146M130 60H146M130 78H146M130 96H146"/>
+            <rect class="chip" x="30" y="10" width="100" height="100" rx="10"/>
+            <rect id="p0" x="42" y="20" width="76" height="12" rx="3"/><rect id="p1" x="42" y="38" width="76" height="12" rx="3"/>
+            <rect id="p2" x="42" y="56" width="76" height="12" rx="3"/><rect id="p3" x="42" y="74" width="76" height="12" rx="3"/>
+            <rect id="p4" x="42" y="92" width="76" height="12" rx="3"/>
+          </svg>
+        </div>
+        <h3>Horizontais</h3><ul class="cl" id="clH"></ul>
+        <h3>Verticais</h3><ul class="cl" id="clV"></ul>
+      </div>
+    </div>
+  </section>
+  <section id="fc" class="hide"></section>
+  <section id="an" class="hide"></section>
+</main>
+<input id="kb" autocomplete="off" autocapitalize="characters" aria-label="teclado">
+<div id="ov" class="ov hide"><div class="pn"><div class="big" id="ovt"></div><p id="ovp"></p><button class="b" id="ovb">OK</button></div></div>
+<script src="script.js"></script>
 </body>
 </html>

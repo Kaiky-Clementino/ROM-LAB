@@ -1,409 +1,74 @@
-const WORDS = [
-  { answer: "CPU", clue: "Cerebro do computador que executa instrucoes e coordena componentes." },
-  { answer: "ULA", clue: "Bloco responsavel por calculos numericos e comparacoes logicas." },
-  { answer: "UC", clue: "Parte que interpreta instrucoes e comanda o funcionamento interno." },
-  { answer: "REGISTRADORES", clue: "Memorias internas ultrarrapidas usadas durante processamento imediato." },
-  { answer: "RAM", clue: "Memoria volatil usada para dados e programas em execucao." },
-  { answer: "ROM", clue: "Memoria permanente com instrucoes essenciais de inicializacao." },
-  { answer: "EEPROM", clue: "Chip nao volatil regravavel eletricamente sem remover do circuito." },
-  { answer: "FLASH", clue: "Tecnologia nao volatil apagada em blocos, comum em pendrives." },
-  { answer: "CACHE", clue: "Memoria muito rapida que reduz acesso frequente a dados." },
-  { answer: "MEMORIADEMASSA", clue: "Armazenamento de grande capacidade para dados persistentes." },
-  { answer: "DMA", clue: "Recurso que transfere dados sem ocupar continuamente o processador." },
-  { answer: "ADDRESSBUS", clue: "Linhas que indicam local de origem ou destino na memoria." },
-  { answer: "DATABUS", clue: "Linhas eletricas que transportam informacoes entre componentes." },
-  { answer: "MICROCONTROLADOR", clue: "Circuito integrado com processamento e perifericos para sistemas embarcados." },
-  { answer: "DUALCORE", clue: "Processador com dois nucleos fisicos de execucao." },
-  { answer: "QUADCORE", clue: "Processador com quatro nucleos para tarefas simultaneas." }
-];
 
-const BOARD_SIZE = 26;
-const MAX_ATTEMPTS = 500;
-
-const boardEl = document.getElementById("board");
-const acrossEl = document.getElementById("acrossClues");
-const downEl = document.getElementById("downClues");
-const scoreEl = document.getElementById("score");
-const feedbackEl = document.getElementById("feedback");
-const checkBtn = document.getElementById("checkBtn");
-const resetBtn = document.getElementById("resetBtn");
-
-let game = null;
-
-function shuffle(items) {
-  const arr = [...items];
-  for (let i = arr.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
+var G = [["MICROCONTROLADOR", 5, 0, "H"], ["MEMORIADEMASSA", 1, 15, "V"], ["REGISTRADORES", 0, 8, "V"], ["ADDRESSBUS", 4, 13, "V"], ["DUALCORE", 0, 10, "V"], ["QUADCORE", 9, 3, "H"], ["DATABUS", 8, 5, "V"], ["EEPROM", 1, 4, "V"], ["FLASH", 14, 2, "H"], ["CACHE", 1, 0, "H"], ["CPU", 12, 11, "H"], ["ULA", 7, 6, "H"], ["RAM", 0, 1, "V"], ["ROM", 3, 0, "V"], ["DMA", 11, 3, "H"], ["UC", 11, 11, "V"]];
+var CL = { "CPU": "Cérebro do computador: busca, interpreta e executa as instruções dos programas.", "ULA": "Parte do processador que faz as contas e as comparações lógicas.", "UC": "Parte do processador que organiza a sequência e o momento de cada etapa.", "REGISTRADORES": "Minúsculos espaços dentro do processador, ultrarrápidos, guardam os valores da operação atual.", "RAM": "Guarda temporariamente programas em uso e perde tudo quando a energia acaba.", "ROM": "Vem gravada de fábrica, só permite leitura e mantém o conteúdo sem energia.", "EEPROM": "Chip que mantém dados sem energia e pode ser regravado eletricamente, byte a byte.", "FLASH": "Armazenamento sem energia de pendrives e cartões, apagado e gravado em blocos.", "CACHE": "Pequena e muito veloz, fica junto ao processador guardando o que é usado com frequência.", "MEMORIADEMASSA": "Guarda arquivos por longo prazo e em grande volume, como em HDs e SSDs.", "DMA": "Recurso que permite a um periférico trocar blocos de dados sem sobrecarregar o processador.", "ADDRESSBUS": "Via de mão única que informa a posição exata a ser lida ou escrita.", "DATABUS": "Via que leva nos dois sentidos o conteúdo lido ou escrito entre processador e memória.", "MICROCONTROLADOR": "Um só chip com processador, memória e portas, usado em sensores e eletrodomésticos.", "DUALCORE": "Processador que reúne duas unidades de execução independentes no mesmo chip.", "QUADCORE": "Processador que reúne quatro unidades de execução independentes no mesmo chip." };
+var ORD = ["CPU", "ULA", "UC", "REGISTRADORES", "RAM", "ROM", "EEPROM", "FLASH", "CACHE", "MEMORIADEMASSA", "DMA", "ADDRESSBUS", "DATABUS", "MICROCONTROLADOR", "DUALCORE", "QUADCORE"];
+var $ = function (s) { return document.querySelector(s) }, tab = "cz";
+function pick(a) { return a[Math.floor(Math.random() * a.length)] }
+function lbl(w) { return w === "MEMORIADEMASSA" ? "MEMÓRIA DE MASSA" : w === "ADDRESSBUS" ? "ADDRESS BUS" : w === "DATABUS" ? "DATA BUS" : w === "DUALCORE" ? "DUAL CORE" : w === "QUADCORE" ? "QUAD CORE" : w }
+function ovl(t, p, f) { $("#ovt").textContent = t; $("#ovp").textContent = p; $("#ov").classList.remove("hide"); $("#ovb").onclick = function () { $("#ov").classList.add("hide"); f && f() } }
+document.querySelectorAll("nav button").forEach(function (b) { b.onclick = function () { tab = b.dataset.t; document.querySelectorAll("nav button").forEach(function (x) { x.classList.toggle("on", x === b) });["cz", "fc", "an"].forEach(function (i) { $("#" + i).classList.toggle("hide", i !== tab) }) } });
+/* ===== CRUZADINHA ===== */
+var R = 0, C = 0, cells = {}, W = [], val = {}, mark = {}, lives = 5, dead = false, sel = null, dir = "H";
+G.forEach(function (g) { R = Math.max(R, g[1] + (g[3] == "V" ? g[0].length : 1)); C = Math.max(C, g[2] + (g[3] == "H" ? g[0].length : 1)) });
+G.forEach(function (g, i) { var w = { t: g[0], r: g[1], c: g[2], d: g[3], k: [] }; for (var j = 0; j < w.t.length; j++) { var r = w.r + (w.d == "V" ? j : 0), c = w.c + (w.d == "H" ? j : 0), k = r + "," + c; w.k.push(k); cells[k] = cells[k] || { r: r, c: c, ch: w.t[j], w: {} }; cells[k].w[w.d] = i } W.push(w) });
+var n = 1; for (var r = 0; r < R; r++)for (var c = 0; c < C; c++) { var k = r + "," + c; if (!cells[k]) continue; var st = false; W.forEach(function (w) { if (w.k[0] == k) { st = true; w.n = w.n || n } }); if (st) n++ }
+/* mesma célula inicial de H e V recebe o mesmo número */
+W.forEach(function (w) { var o = W.filter(function (x) { return x.k[0] == w.k[0] && x.n }); if (!w.n && o.length) w.n = o[0].n });
+function aw() { if (!sel) return null; var c = cells[sel]; var i = c.w[dir]; if (i === undefined) { dir = dir == "H" ? "V" : "H"; i = c.w[dir] } return i }
+function wst(i) { var w = W[i], f = 0, b = 0, o = 0; w.k.forEach(function (k) { if (val[k]) f++; if (mark[k] == "bad") b++; if (mark[k] == "ok") o++ }); return b ? "bad" : o == w.k.length ? "ok" : f < w.k.length ? "inc" : "inc" }
+function build() {
+    var g = $("#grid"); g.style.gridTemplateColumns = "repeat(" + C + ",auto)"; g.innerHTML = ""; for (var r = 0; r < R; r++)for (var c = 0; c < C; c++) { var k = r + "," + c, d = document.createElement("div"); d.className = "c" + (cells[k] ? "" : " e"); d.dataset.k = k; if (cells[k]) { W.forEach(function (w) { if (w.k[0] == k && !d.querySelector("i")) d.insertAdjacentHTML("afterbegin", "<i>" + w.n + "</i>") }); d.appendChild(document.createElement("b")).style.fontWeight = 700; d.onclick = function () { cclick(this.dataset.k) } } g.appendChild(d) }
+    ["H", "V"].forEach(function (D) { var u = $("#cl" + D); u.innerHTML = ""; W.map(function (w, i) { return [w, i] }).filter(function (x) { return x[0].d == D }).sort(function (a, b) { return a[0].n - b[0].n }).forEach(function (x) { var li = document.createElement("li"); li.dataset.i = x[1]; li.onclick = function () { sel = W[x[1]].k[0]; dir = D; rend(); $("#kb").focus() }; u.appendChild(li) }) })
 }
-
-function createBoard(size) {
-  return Array.from({ length: size }, () => Array(size).fill(null));
+function rend() {
+    var a = aw(), ak = a !== null ? W[a].k : []; document.querySelectorAll(".c:not(.e)").forEach(function (d) { var k = d.dataset.k; d.className = "c" + (ak.indexOf(k) > -1 ? " hl" : "") + (k == sel ? " sel" : "") + (mark[k] ? " " + mark[k] : ""); d.querySelector("b").textContent = val[k] || "" });
+    document.querySelectorAll("ul.cl li").forEach(function (li) { var i = +li.dataset.i, w = W[i], s = wst(i); li.className = (i === a ? "act " : "") + s; li.innerHTML = w.n + ". " + CL[w.t] + " <small>(" + w.t.length + ") " + (s == "ok" ? "✓ certa" : s == "bad" ? "✗ errada" : "· incompleta") + "</small>" });
+    var ok = 0; W.forEach(function (w, i) { if (wst(i) == "ok") ok++ }); $("#sc").textContent = ok + " de 16 palavras"; $("#hr").textContent = (5 - lives) * 20 + " / 100 KB"; for (var p = 0; p < 5; p++)$("#p" + p).setAttribute("class", p < 5 - lives ? "full" : ""); return ok
 }
-
-function inBounds(row, col, size) {
-  return row >= 0 && col >= 0 && row < size && col < size;
+function cclick(k) { if (dead) return; if (sel == k && cells[k].w.H !== undefined && cells[k].w.V !== undefined) dir = dir == "H" ? "V" : "H"; else { sel = k; if (cells[k].w[dir] === undefined) dir = dir == "H" ? "V" : "H" } rend(); $("#kb").focus() }
+function mv(dr, dc) { if (!sel) return; var c = cells[sel], r = c.r + dr, cc = c.c + dc; while (r >= 0 && cc >= 0 && r < R && cc < C) { if (cells[r + "," + cc]) { sel = r + "," + cc; break } r += dr; cc += dc } }
+function step(f) { var i = aw(); if (i === null) return; var w = W[i], p = w.k.indexOf(sel) + f; if (p >= 0 && p < w.k.length) sel = w.k[p] }
+function put(ch) { if (dead || !sel) return; val[sel] = ch; delete mark[sel]; step(1); rend() }
+function check() {
+    if (dead) return; var bad = 0, any = 0; Object.keys(val).forEach(function (k) { if (!val[k]) return; any++; if (val[k] == cells[k].ch) mark[k] = "ok"; else { mark[k] = "bad"; bad++ } });
+    if (bad) { lives--; $("#cm").textContent = "⚠ " + bad + " letra(s) errada(s). +20 KB gravados na ROM, sem volta."; if (lives <= 0) { dead = true; $("#cm").textContent = "🔒 ROM cheia! O tabuleiro foi bloqueado. Clique em Reiniciar."; ovl("ROM CHEIA", "Os erros gravados não podem ser apagados. Reinicie para tentar de novo.") } } else $("#cm").textContent = any ? "✔ Tudo certo até aqui." : "Nada preenchido ainda.";
+    var ok = rend(); if (ok == 16 && !dead) { ovl("ROM VALIDADA", "Você completou as 16 palavras com " + (lives * 20) + " KB livres na ROM!") }
 }
-
-function canPlaceWord(board, word, row, col, direction, requireCross) {
-  const size = board.length;
-  let crosses = 0;
-
-  for (let i = 0; i < word.length; i += 1) {
-    const r = row + (direction === "down" ? i : 0);
-    const c = col + (direction === "across" ? i : 0);
-    if (!inBounds(r, c, size)) return null;
-
-    const existing = board[r][c];
-    const char = word[i];
-    if (existing && existing !== char) return null;
-
-    if (!existing) {
-      if (direction === "across") {
-        if (inBounds(r - 1, c, size) && board[r - 1][c]) return null;
-        if (inBounds(r + 1, c, size) && board[r + 1][c]) return null;
-      } else {
-        if (inBounds(r, c - 1, size) && board[r][c - 1]) return null;
-        if (inBounds(r, c + 1, size) && board[r][c + 1]) return null;
-      }
-    } else {
-      crosses += 1;
-    }
-  }
-
-  const beforeR = row + (direction === "down" ? -1 : 0);
-  const beforeC = col + (direction === "across" ? -1 : 0);
-  if (inBounds(beforeR, beforeC, size) && board[beforeR][beforeC]) return null;
-
-  const afterR = row + (direction === "down" ? word.length : 0);
-  const afterC = col + (direction === "across" ? word.length : 0);
-  if (inBounds(afterR, afterC, size) && board[afterR][afterC]) return null;
-
-  if (requireCross && crosses === 0) return null;
-  return { crosses };
+$("#chk").onclick = check; $("#rst").onclick = function () { val = {}; mark = {}; lives = 5; dead = false; $("#cm").textContent = "Chip regravado do zero."; rend() };
+document.addEventListener("keydown", function (e) { if (tab != "cz" || !sel || e.ctrlKey || e.metaKey) return; var k = e.key, m = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }; if (m[k]) { e.preventDefault(); mv(m[k][0], m[k][1]); rend() } else if (k == " ") { e.preventDefault(); var c = cells[sel]; if (c.w.H !== undefined && c.w.V !== undefined) dir = dir == "H" ? "V" : "H"; rend() } else if (k == "Backspace") { e.preventDefault(); if (!val[sel]) step(-1); delete val[sel]; delete mark[sel]; rend() } else if (k == "Enter") { e.preventDefault(); check() } });
+$("#kb").addEventListener("input", function (e) { var s = this.value.normalize("NFD").replace(/[^A-Za-z]/g, "").toUpperCase(); this.value = ""; for (var i = 0; i < s.length; i++)put(s[i]) });
+document.addEventListener("paste", function (e) { if (tab != "cz") return; var s = (e.clipboardData.getData("text") || "").normalize("NFD").replace(/[^A-Za-z]/g, "").toUpperCase(); for (var i = 0; i < s.length; i++)put(s[i]) });
+build(); rend();
+/* ===== PROFESSOR ===== */
+var P = { ok: ["Gravação válida, ótimo!", "Bit certeiro!", "Confere com o chip!"], no: ["Erro gravado na ROM...", "Bit errado! Espaço perdido.", "Atenção: a ROM não apaga erros."], win: ["Chip validado! Mandou bem.", "Leitura perfeita!"], lose: ["ROM cheia."], idle: ["Analise a pista e grave a resposta."] };
+function prof(f, t) { return '<div class="prof"><div class="face">' + f + '</div><div id="pm">' + t + '</div></div>' }
+/* ===== FORCA ===== */
+var F = { i: 0, hit: {}, miss: {}, err: 0, done: false, score: 0, res: 0, end: false, fin: false };
+function fRend() {
+    var el = $("#fc"); if (F.fin) { el.innerHTML = '<div class="pn"><h3>Resumo</h3><div class="big">' + F.score + ' de 16 palavras</div><button class="b" id="fr">Reiniciar</button></div>'; $("#fr").onclick = function () { F = { i: 0, hit: {}, miss: {}, err: 0, done: false, score: 0, res: 0, end: false, fin: false }; fRend() }; return }
+    var w = ORD[F.i], t = 20 * F.err, face = F.done ? (F.res ? "😄" : "💥") : F.err > 2 ? "😰" : F.err ? "🤨" : "🤖";
+    var wd = w.split("").map(function (ch) { return '<div class="lt">' + (F.hit[ch] || F.done ? ch : "") + '</div>' }).join("");
+    var kb = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(function (l) { return '<button data-l="' + l + '" class="' + (F.hit[l] ? "h" : F.miss[l] ? "m" : "") + '" ' + (F.hit[l] || F.miss[l] || F.done ? "disabled" : "") + '>' + l + '</button>' }).join("");
+    el.innerHTML = '<div class="pn" style="max-width:640px"><div class="stat"><span>Rodada ' + (F.i + 1) + '/16</span><span>Pontos: ' + F.score + '</span></div>' + prof(face, F.msg || pick(P.idle)) + '<div class="stat"><span>ROM</span><span>' + t + ' / 100 KB</span></div><div class="temp"><div style="width:' + Math.min(100, t) + '%"></div></div><div class="clue">' + CL[w] + ' <small>(' + w.length + ' letras)</small></div><div class="word">' + wd + '</div><div class="kb">' + kb + '</div><input class="t" id="fi" placeholder="Palavra inteira" ' + (F.done ? "disabled" : "") + '> <button class="b" id="fg" ' + (F.done ? "disabled" : "") + '>Conferir</button> <button class="b" id="fn" ' + (F.done ? "" : "disabled") + '>' + (F.i == 15 ? "Ver resumo" : "Próxima Palavra") + '</button></div>';
+    el.querySelectorAll(".kb button").forEach(function (b) { b.onclick = function () { fl(b.dataset.l) } }); $("#fg").onclick = function () { fw($("#fi").value) }; $("#fi").onkeydown = function (e) { e.stopPropagation(); if (e.key == "Enter") fw(this.value) }; $("#fn").onclick = function () { if (F.i == 15) F.fin = true; else { F.i++; F.hit = {}; F.miss = {}; F.err = 0; F.done = false; F.msg = "" } fRend() }
 }
-
-function placeWord(board, placement) {
-  const { answer, row, col, direction, id, clue } = placement;
-  for (let i = 0; i < answer.length; i += 1) {
-    const r = row + (direction === "down" ? i : 0);
-    const c = col + (direction === "across" ? i : 0);
-    board[r][c] = answer[i];
-  }
-  return { id, answer, clue, row, col, direction };
+function fchk() { var w = ORD[F.i]; if (w.split("").every(function (c) { return F.hit[c] })) { F.done = true; F.res = 1; F.score++; F.msg = pick(P.win) } else if (F.err >= 5) { F.done = true; F.res = 0; F.msg = "ROM cheia! A resposta era " + lbl(w) + "." } }
+function fl(l) { if (F.done || F.hit[l] || F.miss[l]) return; if (ORD[F.i].indexOf(l) > -1) { F.hit[l] = 1; F.msg = pick(P.ok) } else { F.miss[l] = 1; F.err++; F.msg = pick(P.no) } fchk(); fRend() }
+function fw(s) { if (F.done) return; s = s.normalize("NFD").replace(/[^A-Za-z]/g, "").toUpperCase(); if (!s) return; if (s == ORD[F.i]) { ORD[F.i].split("").forEach(function (c) { F.hit[c] = 1 }); fchk() } else { F.err++; F.msg = pick(P.no); fchk() } fRend() }
+document.addEventListener("keydown", function (e) { if (tab == "fc" && !e.ctrlKey && !e.metaKey && e.target.tagName != "INPUT" && /^[a-zA-Z]$/.test(e.key)) fl(e.key.toUpperCase()) });
+fRend();
+/* ===== ANAGRAMA ===== */
+var AO = ORD.slice().reverse(), A = { i: 0, pool: [], slots: [], done: false, score: 0, fin: false, msg: "" };
+function shuf(w) { var a = w.split(""), b; for (var t = 0; t < 20; t++) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var x = a[i]; a[i] = a[j]; a[j] = x } if (a.join("") != w) break } return a }
+function aInit() { var w = AO[A.i]; A.pool = shuf(w).map(function (l) { return { l: l, u: false } }); A.slots = w.split("").map(function () { return -1 }); A.done = false; A.msg = "" }
+function aRend() {
+    var el = $("#an"); if (A.fin) { el.innerHTML = '<div class="pn"><h3>Resumo</h3><div class="big">' + A.score + ' de 16 palavras</div><button class="b" id="ar">Reiniciar</button></div>'; $("#ar").onclick = function () { A.i = 0; A.score = 0; A.fin = false; aInit(); aRend() }; return }
+    var w = AO[A.i]; el.innerHTML = '<div class="pn" style="max-width:640px"><div class="stat"><span>Rodada ' + (A.i + 1) + '/16</span><span>Pontos: ' + A.score + '</span></div>' + prof(A.done ? "😄" : A.msg ? "🤨" : "🤖", A.msg || pick(P.idle)) + '<div class="clue">' + CL[w] + ' <small>(' + w.length + ' letras)</small></div><div class="word" id="sl">' + A.slots.map(function (s, k) { return '<button class="slot' + (s > -1 ? " f" : "") + '" data-k="' + k + '" ' + (A.done ? "disabled" : "") + '>' + (s > -1 ? A.pool[s].l : "") + '</button>' }).join("") + '</div><div class="word" id="pl">' + A.pool.map(function (p, k) { return '<button class="tile" data-k="' + k + '" ' + (p.u || A.done ? "disabled" : "") + '>' + p.l + '</button>' }).join("") + '</div><button class="b" id="ac" ' + (A.done ? "disabled" : "") + '>Conferir</button> <button class="b" id="an2" ' + (A.done ? "" : "disabled") + '>' + (A.i == 15 ? "Ver resumo" : "Próxima") + '</button></div>';
+    el.querySelectorAll(".tile").forEach(function (b) { b.onclick = function () { aPut(+b.dataset.k) } }); el.querySelectorAll(".slot").forEach(function (b) { b.onclick = function () { aRem(+b.dataset.k) } });
+    $("#ac").onclick = function () { var s = A.slots.map(function (x) { return x > -1 ? A.pool[x].l : "?" }).join(""); if (s == w) { A.done = true; A.score++; A.msg = pick(P.win) } else A.msg = s.indexOf("?") > -1 ? "Preencha todas as casas." : pick(P.no); aRend() };
+    $("#an2").onclick = function () { if (A.i == 15) A.fin = true; else { A.i++; aInit() } aRend() }
 }
-
-function findCandidates(board, item, placed) {
-  const candidates = [];
-  const { answer } = item;
-
-  for (let r = 0; r < board.length; r += 1) {
-    for (let c = 0; c < board.length; c += 1) {
-      const cell = board[r][c];
-      if (!cell) continue;
-
-      for (let i = 0; i < answer.length; i += 1) {
-        if (answer[i] !== cell) continue;
-
-        const across = { row: r, col: c - i, direction: "across" };
-        const down = { row: r - i, col: c, direction: "down" };
-
-        const testAcross = canPlaceWord(board, answer, across.row, across.col, "across", placed > 0);
-        if (testAcross) candidates.push({ ...across, score: testAcross.crosses });
-
-        const testDown = canPlaceWord(board, answer, down.row, down.col, "down", placed > 0);
-        if (testDown) candidates.push({ ...down, score: testDown.crosses });
-      }
-    }
-  }
-  return candidates;
-}
-
-function generateGame(words) {
-  const baseOrder = [...words].sort((a, b) => b.answer.length - a.answer.length);
-
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
-    const board = createBoard(BOARD_SIZE);
-    const head = baseOrder[0];
-    const tail = shuffle(baseOrder.slice(1));
-    const queue = [head, ...tail];
-    const placements = [];
-
-    const firstRow = Math.floor(BOARD_SIZE / 2);
-    const firstCol = Math.floor((BOARD_SIZE - queue[0].answer.length) / 2);
-    const firstPlacement = {
-      ...queue[0],
-      row: firstRow,
-      col: firstCol,
-      direction: "across",
-      id: queue[0].answer
-    };
-
-    if (!canPlaceWord(board, queue[0].answer, firstRow, firstCol, "across", false)) continue;
-    placements.push(placeWord(board, firstPlacement));
-
-    let success = true;
-    for (let i = 1; i < queue.length; i += 1) {
-      const item = queue[i];
-      const candidates = findCandidates(board, item, placements.length);
-
-      if (candidates.length === 0) {
-        success = false;
-        break;
-      }
-
-      candidates.sort((a, b) => b.score - a.score);
-      const bestScore = candidates[0].score;
-      const best = candidates.filter((x) => x.score === bestScore);
-      const chosen = best[Math.floor(Math.random() * best.length)];
-
-      placements.push(
-        placeWord(board, {
-          ...item,
-          row: chosen.row,
-          col: chosen.col,
-          direction: chosen.direction,
-          id: item.answer
-        })
-      );
-    }
-
-    if (!success) continue;
-
-    return finalizeBoard(board, placements);
-  }
-
-  throw new Error("Nao foi possivel gerar o tabuleiro com todas as palavras.");
-}
-
-function finalizeBoard(board, placements) {
-  const rows = [];
-  const cols = [];
-  placements.forEach((p) => {
-    for (let i = 0; i < p.answer.length; i += 1) {
-      const r = p.row + (p.direction === "down" ? i : 0);
-      const c = p.col + (p.direction === "across" ? i : 0);
-      rows.push(r);
-      cols.push(c);
-    }
-  });
-
-  const minRow = Math.min(...rows);
-  const maxRow = Math.max(...rows);
-  const minCol = Math.min(...cols);
-  const maxCol = Math.max(...cols);
-
-  const starts = new Map();
-  let currentNumber = 1;
-  const sortedPlacements = [...placements].sort((a, b) => {
-    if (a.row !== b.row) return a.row - b.row;
-    if (a.col !== b.col) return a.col - b.col;
-    return a.direction.localeCompare(b.direction);
-  });
-
-  sortedPlacements.forEach((p) => {
-    const key = `${p.row}-${p.col}`;
-    if (!starts.has(key)) {
-      starts.set(key, currentNumber);
-      currentNumber += 1;
-    }
-    p.number = starts.get(key);
-  });
-
-  return {
-    board,
-    placements: sortedPlacements,
-    bounds: { minRow, maxRow, minCol, maxCol }
-  };
-}
-
-function renderGame(state) {
-  const { board, placements, bounds } = state;
-  const { minRow, maxRow, minCol, maxCol } = bounds;
-  const rows = maxRow - minRow + 1;
-  const cols = maxCol - minCol + 1;
-
-  boardEl.style.setProperty("--cols", cols);
-  boardEl.innerHTML = "";
-
-  const cellMap = new Map();
-  const wordCellMap = new Map();
-
-  placements.forEach((p) => {
-    for (let i = 0; i < p.answer.length; i += 1) {
-      const r = p.row + (p.direction === "down" ? i : 0);
-      const c = p.col + (p.direction === "across" ? i : 0);
-      const key = `${r}-${c}`;
-      if (!wordCellMap.has(key)) wordCellMap.set(key, []);
-      wordCellMap.get(key).push(p.id);
-    }
-  });
-
-  for (let r = 0; r < rows; r += 1) {
-    for (let c = 0; c < cols; c += 1) {
-      const realR = r + minRow;
-      const realC = c + minCol;
-      const key = `${realR}-${realC}`;
-
-      const cell = document.createElement("div");
-      cell.className = "cell";
-
-      if (!board[realR][realC]) {
-        cell.classList.add("blank");
-        boardEl.appendChild(cell);
-        continue;
-      }
-
-      const start = placements.find((p) => p.row === realR && p.col === realC);
-      if (start) {
-        const num = document.createElement("span");
-        num.className = "num";
-        num.textContent = String(start.number);
-        cell.appendChild(num);
-      }
-
-      const input = document.createElement("input");
-      input.maxLength = 1;
-      input.autocomplete = "off";
-      input.spellcheck = false;
-      input.dataset.row = String(realR);
-      input.dataset.col = String(realC);
-      input.addEventListener("input", handleInput);
-      input.addEventListener("keydown", handleKeydown);
-
-      cell.appendChild(input);
-      boardEl.appendChild(cell);
-      cellMap.set(key, { cell, input, words: wordCellMap.get(key) || [] });
-    }
-  }
-
-  state.cellMap = cellMap;
-  renderClues(placements);
-}
-
-function renderClues(placements) {
-  acrossEl.innerHTML = "";
-  downEl.innerHTML = "";
-
-  const across = placements.filter((p) => p.direction === "across");
-  const down = placements.filter((p) => p.direction === "down");
-
-  across.forEach((p) => {
-    const li = document.createElement("li");
-    li.id = `clue-${p.id}`;
-    li.textContent = `${p.number}. ${p.clue} (${p.answer.length})`;
-    acrossEl.appendChild(li);
-  });
-
-  down.forEach((p) => {
-    const li = document.createElement("li");
-    li.id = `clue-${p.id}`;
-    li.textContent = `${p.number}. ${p.clue} (${p.answer.length})`;
-    downEl.appendChild(li);
-  });
-}
-
-function handleInput(event) {
-  const input = event.target;
-  const cleaned = input.value.toUpperCase().replace(/[^A-Z]/g, "");
-  input.value = cleaned;
-
-  if (!cleaned) return;
-  const row = Number(input.dataset.row);
-  const col = Number(input.dataset.col);
-
-  const rightKey = `${row}-${col + 1}`;
-  const downKey = `${row + 1}-${col}`;
-  const next = game.cellMap.get(rightKey) || game.cellMap.get(downKey);
-  if (next) next.input.focus();
-}
-
-function handleKeydown(event) {
-  const input = event.target;
-  if (event.key !== "Backspace" || input.value) return;
-
-  const row = Number(input.dataset.row);
-  const col = Number(input.dataset.col);
-  const leftKey = `${row}-${col - 1}`;
-  const upKey = `${row - 1}-${col}`;
-  const prev = game.cellMap.get(leftKey) || game.cellMap.get(upKey);
-  if (prev) prev.input.focus();
-}
-
-function resetVisualState() {
-  game.cellMap.forEach(({ cell }) => {
-    cell.classList.remove("correct", "wrong");
-  });
-
-  game.placements.forEach((p) => {
-    const clue = document.getElementById(`clue-${p.id}`);
-    clue.classList.remove("ok", "erro");
-  });
-
-  feedbackEl.textContent = "";
-  feedbackEl.classList.remove("win");
-}
-
-function checkAnswers() {
-  resetVisualState();
-
-  let correctCount = 0;
-  const perCellStatus = new Map();
-
-  game.placements.forEach((p) => {
-    let typed = "";
-    for (let i = 0; i < p.answer.length; i += 1) {
-      const r = p.row + (p.direction === "down" ? i : 0);
-      const c = p.col + (p.direction === "across" ? i : 0);
-      const key = `${r}-${c}`;
-      const cell = game.cellMap.get(key);
-      typed += cell.input.value.toUpperCase();
-    }
-
-    const isCorrect = typed === p.answer;
-    if (isCorrect) correctCount += 1;
-
-    const clue = document.getElementById(`clue-${p.id}`);
-    clue.classList.add(isCorrect ? "ok" : "erro");
-
-    for (let i = 0; i < p.answer.length; i += 1) {
-      const r = p.row + (p.direction === "down" ? i : 0);
-      const c = p.col + (p.direction === "across" ? i : 0);
-      const key = `${r}-${c}`;
-      if (!perCellStatus.has(key)) perCellStatus.set(key, []);
-      perCellStatus.get(key).push(isCorrect);
-    }
-  });
-
-  perCellStatus.forEach((statusList, key) => {
-    const state = statusList.every(Boolean) ? "correct" : "wrong";
-    game.cellMap.get(key).cell.classList.add(state);
-  });
-
-  scoreEl.textContent = `${correctCount} de ${game.placements.length} palavras corretas`;
-  if (correctCount === game.placements.length) {
-    feedbackEl.textContent = "Parabens! Voce concluiu a cruzadinha com 100% de acertos.";
-    feedbackEl.classList.add("win");
-  }
-}
-
-function resetBoard() {
-  game.cellMap.forEach(({ input }) => {
-    input.value = "";
-  });
-  resetVisualState();
-  scoreEl.textContent = `0 de ${game.placements.length} palavras corretas`;
-}
-
-function init() {
-  game = generateGame(WORDS);
-  renderGame(game);
-  scoreEl.textContent = `0 de ${game.placements.length} palavras corretas`;
-
-  checkBtn.addEventListener("click", checkAnswers);
-  resetBtn.addEventListener("click", resetBoard);
-}
-
-init();
+function aPut(k) { var s = A.slots.indexOf(-1); if (s < 0 || A.pool[k].u || A.done) return; A.slots[s] = k; A.pool[k].u = true; aRend() }
+function aRem(s) { if (A.slots[s] < 0 || A.done) return; A.pool[A.slots[s]].u = false; A.slots[s] = -1; aRend() }
+document.addEventListener("keydown", function (e) { if (tab != "an" || A.done || A.fin || e.ctrlKey || e.metaKey) return; if (e.key == "Backspace") { for (var s = A.slots.length - 1; s >= 0; s--)if (A.slots[s] > -1) { aRem(s); break } } else if (/^[a-zA-Z]$/.test(e.key)) { var L = e.key.toUpperCase(); for (var k = 0; k < A.pool.length; k++)if (!A.pool[k].u && A.pool[k].l == L) { aPut(k); break } } });
+aInit(); aRend();
