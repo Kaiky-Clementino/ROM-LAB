@@ -1,0 +1,354 @@
+:root {
+  --bg: #0a0e17;
+  --surface-low: rgba(15, 23, 42, 0.7);
+  --surface: rgba(22, 31, 48, 0.8);
+  --surface-high: rgba(30, 41, 59, 0.9);
+  --text: #dfe2ef;
+  --muted: #9caec6;
+  --line: rgba(143, 166, 184, 0.26);
+  --line-strong: rgba(0, 240, 255, 0.4);
+  --cyan: #00f0ff;
+  --magenta: #d946ef;
+  --green: #10b981;
+  --red: #f43f5e;
+  --blank: #0f131c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(42rem 42rem at 8% -10%, rgba(0, 240, 255, 0.18), transparent 56%),
+    radial-gradient(38rem 38rem at 92% 120%, rgba(217, 70, 239, 0.15), transparent 60%),
+    var(--bg);
+  position: relative;
+  isolation: isolate;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(rgba(10, 14, 23, 0) 50%, rgba(0, 240, 255, 0.03) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+p,
+li {
+  color: var(--muted);
+}
+
+.card {
+  background: var(--surface-low);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 40px rgba(2, 6, 18, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.75rem 1.12rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #35f7ff, var(--cyan));
+  color: #041b1d;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.34);
+}
+
+.btn-secondary {
+  border-color: rgba(0, 240, 255, 0.5);
+  background: rgba(0, 240, 255, 0.08);
+  color: var(--cyan);
+}
+
+.btn-ghost {
+  border-color: var(--line);
+  background: rgba(15, 23, 42, 0.45);
+  color: var(--text);
+}
+
+.page-home .home-wrap {
+  max-width: 1020px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.hero {
+  padding: 1.7rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 240, 255, 0.08), transparent 42%);
+  pointer-events: none;
+}
+
+.hero .kicker {
+  margin: 0;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cyan);
+  font-size: 0.75rem;
+}
+
+.hero h1 {
+  margin-top: 0.4rem;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  color: #ecf8ff;
+  text-shadow: 0 0 18px rgba(0, 240, 255, 0.25);
+}
+
+.hero p {
+  max-width: 66ch;
+}
+
+.page-home .card:last-child {
+  padding: 1.3rem 1.5rem;
+}
+
+.page-home ul {
+  margin: 0.8rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.page-game {
+  padding: 1rem;
+}
+
+.topbar {
+  max-width: 1300px;
+  margin: 0 auto 1rem;
+  padding: 1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.topbar h1 {
+  color: #f2fbff;
+}
+
+.subtitle {
+  margin: 0;
+}
+
+.game-layout {
+  max-width: 1300px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(680px, 2fr) minmax(320px, 1fr);
+}
+
+.board-panel,
+.clues-panel {
+  padding: 1rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+
+.score {
+  margin: 0;
+  color: #e9f8ff;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+}
+
+.feedback {
+  min-height: 1.4rem;
+  margin: 0.8rem 0 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.84rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.feedback.win {
+  color: var(--green);
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.board {
+  --cols: 10;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 42px);
+  gap: 2px;
+  overflow: auto;
+  padding-bottom: 0.3rem;
+}
+
+.cell {
+  width: 42px;
+  height: 42px;
+  position: relative;
+  border-radius: 4px;
+  border: 1px solid rgba(132, 148, 149, 0.35);
+  background: rgba(28, 31, 41, 0.9);
+}
+
+.cell.blank {
+  border-color: transparent;
+  background: var(--blank);
+}
+
+.cell input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: none;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #f8fbff;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.cell input:focus {
+  box-shadow: 0 0 0 1px var(--cyan), 0 0 12px rgba(0, 240, 255, 0.35);
+  background: rgba(0, 240, 255, 0.07);
+}
+
+.cell .num {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  pointer-events: none;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.54rem;
+  font-weight: 600;
+  color: #91a6be;
+}
+
+.cell.correct {
+  border-color: rgba(16, 185, 129, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.35), 0 0 12px rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.cell.wrong {
+  border-color: rgba(244, 63, 94, 0.85);
+  box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.35), 0 0 12px rgba(244, 63, 94, 0.2);
+  background: rgba(244, 63, 94, 0.11);
+}
+
+.clues-panel h2,
+.clues-panel h3 {
+  color: #f2fbff;
+}
+
+.clues-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.clue-list {
+  margin: 0.6rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.clue-list li {
+  margin-bottom: 0.5rem;
+  line-height: 1.34;
+  font-size: 0.94rem;
+}
+
+.clue-list li.ok {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.clue-list li.erro {
+  color: var(--red);
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .board {
+    grid-template-columns: repeat(var(--cols), 36px);
+  }
+
+  .cell {
+    width: 36px;
+    height: 36px;
+  }
+
+  .cell input {
+    font-size: 0.94rem;
+  }
+}
+
+@media (max-width: 620px) {
+  .page-home .home-wrap {
+    margin-top: 1.2rem;
+  }
+
+  .hero {
+    padding: 1.2rem;
+  }
+
+  .board {
+    grid-template-columns: repeat(var(--cols), 32px);
+  }
+
+  .cell {
+    width: 32px;
+    height: 32px;
+  }
+
+  .cell .num {
+    font-size: 0.49rem;
+  }
+}
