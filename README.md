@@ -2,7 +2,7 @@
 
 Jogo em HTML, CSS e JavaScript puros com três desafios sobre 16 termos da disciplina.
 
-**Site publicado:** https://SEU-USUARIO.github.io/arqcomp-cruzadinha/
+**Site publicado:** https://Kaiky-Clementino.github.io/arqcomp-cruzadinha/
 
 ## Como jogar
 
